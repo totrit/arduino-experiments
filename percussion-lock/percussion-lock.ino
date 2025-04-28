@@ -5,7 +5,7 @@ createSafeString(logging, 128);
 
 const int NO_VALUE = 0;
 const int MAX_BEATS = 100;
-const int SWITCH_LONG_PRESS_DURATION_MILLIS = 3000;
+const int SWITCH_LONG_PRESS_DURATION_MILLIS = 1000;
 unsigned long secretSequence[MAX_BEATS];
 unsigned long receivedSequence[MAX_BEATS];
 bool wasPercussionKeyDown = false;
@@ -73,7 +73,10 @@ void loop() {
       }
       break;
     case SettingPassword:
-      if (hasFinishedShortPress || beatDetected && !continueToReceiveNewPassword()) {
+      if (hasFinishedLongPress) {
+        indicateBeatDetected();
+        resetPassword();
+      } else if (getLongArraySize(secretSequence) > 2 && hasFinishedShortPress || beatDetected && !continueToReceiveNewPassword()) {
         mode = Locked;
       }
       break;
@@ -184,16 +187,19 @@ int* getBeatsPatternDisregardingSpeed(unsigned long beats[]) {
 
 // -1: unmatched; 0: matching; 1: matched
 int matchPatterns(int target[], int test[]) {
-  const int testArraySize = test == nullptr? 0 : getIntArraySize(test);
-  for (int i = 0; i < testArraySize; i ++) {
+  const int testArraySize = (test == nullptr? 0 : getIntArraySize(test));
+  const int targetArraySize = (target == nullptr? 0 : getIntArraySize(target));
+  for (int i = 0; i < testArraySize && i < targetArraySize; i ++) {
     if (!similarValue(test[i], target[i])) {
       return -1;
     }
   }
-  if (testArraySize < getIntArraySize(target)) {
+  if (testArraySize < targetArraySize) {
     return 0;
-  } else {
+  } else if (testArraySize == targetArraySize) {
     return 1;
+  } else {
+    return -1;
   }
 }
 
