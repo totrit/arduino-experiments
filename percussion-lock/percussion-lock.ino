@@ -1,4 +1,7 @@
+#include "SafeString.h"
 #include <Servo.h>
+
+createSafeString(logging, 128);
 
 const int NO_VALUE = 0;
 const int MAX_BEATS = 100;
@@ -75,6 +78,14 @@ void loop() {
       }
       break;
   }
+
+  logging = "beatDetected=";
+  logging += beatDetected;
+  logging += ", secret-size=";
+  logging += getLongArraySize(secretSequence);
+  logging += ", received-size=";
+  logging += getLongArraySize(receivedSequence);
+  Serial.println(logging);
   setLedForMode(mode);
   setServoForMode(mode);
 }
